@@ -3,636 +3,591 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AniStream Pro</title>
+<title>TemanQRIS — Generator QRIS Dinamis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bebas+Neue&display=swap');
+  :root{
+    --counter:#dbe3e1;
+    --counter-2:#c7d2cf;
+    --bezel:#2e3235;
+    --bezel-hi:#484d50;
+    --bezel-lo:#1a1d1f;
+    --screen:#0b120f;
+    --lcd:#7dffb0;
+    --lcd-dim:#2f5b45;
+    --accent:#3355ff;
+    --accent-hi:#5678ff;
+    --paper:#f4efdf;
+    --ink:#25221c;
+    --ink-soft:#726c5c;
+    --danger:#d64545;
+    --font-mono:'Space Mono', ui-monospace, 'Courier New', monospace;
+    --font-sans:'Inter', -apple-system, 'Segoe UI', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 20% 0%, var(--counter-2), transparent 60%),
+      linear-gradient(180deg, var(--counter), var(--counter-2));
+    font-family:var(--font-sans);
+    color:var(--ink);
+    display:flex;
+    justify-content:center;
+    padding:32px 16px 80px;
+  }
+  .stage{width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;}
 
-:root {
-  --bg: #080810;
-  --bg2: #0f0f1a;
-  --bg3: #16162a;
-  --bg4: #1e1e35;
-  --accent: #e63946;
-  --accent2: #ff6b6b;
-  --text: #f0f0f8;
-  --muted: #5a5a7a;
-  --card: #12121f;
-  --border: #252540;
-  --green: #06d6a0;
-  --yellow: #ffd166;
-}
+  .terminal{
+    width:100%;
+    background:linear-gradient(160deg, var(--bezel-hi), var(--bezel) 40%, var(--bezel-lo));
+    border-radius:28px;
+    padding:18px 18px 22px;
+    box-shadow:0 20px 40px -12px rgba(20,20,20,.35), inset 0 1px 0 rgba(255,255,255,.08);
+    position:relative;
+    z-index:2;
+  }
+  .terminal-top{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:2px 6px 14px;
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:.06em;
+    color:#9aa39d;
+  }
+  .terminal-top .brand{display:flex;align-items:center;gap:6px;color:#c7cfc9;}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--lcd);box-shadow:0 0 6px var(--lcd);display:inline-block;}
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; }
+  .screen{
+    background:radial-gradient(120% 140% at 50% 0%, #10201a, var(--screen));
+    border-radius:14px;
+    padding:22px 16px;
+    min-height:150px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.6), inset 0 6px 18px rgba(0,0,0,.5);
+    margin-bottom:16px;
+    position:relative;
+    overflow:hidden;
+  }
+  .screen::after{
+    content:"";position:absolute;inset:0;
+    background:repeating-linear-gradient(180deg, rgba(255,255,255,.025) 0 2px, transparent 2px 4px);
+    pointer-events:none;
+  }
+  .lcd-label{font-family:var(--font-mono);font-size:11px;color:var(--lcd-dim);letter-spacing:.18em;text-align:center;margin-bottom:6px;}
+  .lcd-amount{font-family:var(--font-mono);font-size:34px;color:var(--lcd);text-shadow:0 0 12px rgba(125,255,176,.55);text-align:center;word-break:break-all;}
+  #screenResult{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  #screenResult img{width:150px;height:150px;display:block;background:#fff;border-radius:6px;padding:8px;}
+  #screenResult .caption{font-family:var(--font-mono);font-size:11px;color:var(--lcd);letter-spacing:.08em;}
 
-header {
-  background: rgba(8,8,16,0.97);
-  border-bottom: 1px solid var(--border);
-  padding: 0 16px;
-  height: 54px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  position: sticky;
-  top: 0;
-  z-index: 200;
-}
+  .field{display:block;margin-bottom:12px;}
+  .field-label{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#c7cfc9;margin-bottom:6px;}
+  input,select{
+    width:100%;
+    padding:11px 12px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,.08);
+    background:#1d2022;
+    color:#eef1ee;
+    font-family:var(--font-sans);
+    font-size:15px;
+    outline:none;
+  }
+  input::placeholder{color:#6c7370;}
+  input:focus,select:focus{border-color:var(--accent-hi);box-shadow:0 0 0 3px rgba(85,120,255,.25);}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 
-.logo {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 24px;
-  letter-spacing: 2px;
-  color: var(--accent);
-  flex-shrink: 0;
-}
-.logo span { color: var(--text); }
+  .advanced-toggle{
+    width:100%;background:none;border:none;color:#9aa39d;
+    font-family:var(--font-mono);font-size:12px;letter-spacing:.05em;
+    text-align:left;padding:6px 2px 14px;cursor:pointer;
+  }
+  .advanced{display:grid;overflow:hidden;max-height:0;opacity:0;transition:max-height .3s ease, opacity .2s ease;}
+  .advanced.open{max-height:560px;opacity:1;}
 
-.search-bar { flex: 1; display: flex; gap: 8px; }
-.search-bar input {
-  flex: 1;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-family: 'Inter', sans-serif;
-  outline: none;
-  min-width: 0;
-}
-.search-bar input:focus { border-color: var(--accent); }
-.search-bar input::placeholder { color: var(--muted); }
+  .total-preview{font-family:var(--font-mono);font-size:12px;color:#9aa39d;margin:-2px 0 14px;min-height:14px;}
 
-.btn-red {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  flex-shrink: 0;
-}
-.btn-red:hover { background: var(--accent2); }
+  .generate-btn{
+    width:100%;padding:15px;border:none;border-radius:12px;
+    background:linear-gradient(180deg, var(--accent-hi), var(--accent));
+    color:#fff;font-weight:700;font-size:15px;letter-spacing:.04em;
+    cursor:pointer;box-shadow:0 8px 16px -6px rgba(51,85,255,.55), inset 0 1px 0 rgba(255,255,255,.3);
+  }
+  .generate-btn:disabled{opacity:.6;cursor:not-allowed;}
+  .generate-btn:active{transform:translateY(1px);}
 
-main { padding: 14px; max-width: 960px; margin: 0 auto; }
+  .error{margin-top:12px;background:rgba(214,69,69,.12);border:1px solid rgba(214,69,69,.4);color:#ffb4b4;padding:10px 12px;border-radius:10px;font-size:13px;line-height:1.4;}
+  .hint{font-size:11px;color:#7d857f;margin-top:-6px;margin-bottom:14px;line-height:1.4;}
 
-/* VIEWS */
-#home-view, #results-view, #player-view { display: none; }
-#home-view.active, #results-view.active, #player-view.active { display: block; }
+  .perforation{
+    width:88%;height:0;border-top:2px dashed #b9c2be;position:relative;z-index:1;margin:-2px 0 0;
+  }
+  .perforation::before,.perforation::after{
+    content:"";position:absolute;top:-7px;width:14px;height:14px;border-radius:50%;
+    background:var(--counter-2);box-shadow:inset 0 2px 4px rgba(0,0,0,.15);
+  }
+  .perforation::before{left:-7px;}
+  .perforation::after{right:-7px;}
 
-/* HOME */
-.hero { text-align: center; padding: 40px 16px 28px; }
-.hero h1 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(36px, 10vw, 72px);
-  letter-spacing: 4px;
-  line-height: 1;
-  margin-bottom: 8px;
-}
-.hero h1 span { color: var(--accent); }
-.hero p { color: var(--muted); font-size: 13px; margin-bottom: 28px; }
+  .receipt{
+    width:92%;background:var(--paper);color:var(--ink);
+    border-radius:0 0 10px 10px;
+    padding:20px 18px 24px;
+    font-family:var(--font-mono);
+    box-shadow:0 16px 28px -14px rgba(20,20,20,.4);
+    transform-origin:top center;
+    animation:print .4s ease;
+    position:relative;
+    overflow:hidden;
+  }
+  @keyframes print{from{transform:scaleY(.2);opacity:0;}to{transform:scaleY(1);opacity:1;}}
+  .receipt-row{font-size:13px;display:flex;justify-content:space-between;gap:8px;padding:3px 0;word-break:break-all;}
+  .receipt-row.big{font-size:22px;font-weight:700;justify-content:center;padding:6px 0 10px;}
+  .receipt-divider{border-top:1px dashed var(--ink-soft);margin:8px 0;opacity:.5;}
+  .receipt-row button{
+    background:none;border:1px solid var(--ink-soft);color:var(--ink);
+    font-family:var(--font-mono);font-size:11px;padding:3px 8px;border-radius:6px;cursor:pointer;flex-shrink:0;
+  }
+  .receipt-row button:hover{background:var(--ink);color:var(--paper);}
+  .countdown{justify-content:center;font-weight:700;letter-spacing:.05em;}
+  .countdown.expired{color:var(--danger);}
 
-.chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 28px; }
-.chip {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  color: var(--muted);
-  padding: 7px 14px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.chip:hover { border-color: var(--accent); color: var(--accent2); }
+  .lunas-stamp{
+    position:absolute;top:14px;right:-6px;
+    border:3px solid #b23b3b;color:#b23b3b;
+    font-family:var(--font-mono);font-weight:700;font-size:19px;letter-spacing:.12em;
+    padding:4px 14px;border-radius:6px;
+    transform:rotate(-11deg) scale(0);opacity:0;
+    pointer-events:none;mix-blend-mode:multiply;
+  }
+  .lunas-stamp.show{animation:stamp .4s cubic-bezier(.25,1.6,.4,1) forwards;}
+  @keyframes stamp{
+    0%{transform:rotate(-11deg) scale(2.2);opacity:0;}
+    55%{transform:rotate(-11deg) scale(.92);opacity:.9;}
+    100%{transform:rotate(-11deg) scale(1);opacity:.85;}
+  }
 
-.sec-head {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
-}
-.sec-head h2 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 20px; letter-spacing: 1px; white-space: nowrap;
-}
-.sec-head .line { flex: 1; height: 1px; background: var(--border); }
+  .poll-status{
+    align-items:center;font-size:12px;color:var(--ink-soft);
+  }
+  .poll-dot{
+    width:7px;height:7px;border-radius:50%;background:#2f9e5b;
+    display:inline-block;margin-right:5px;
+    animation:pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:.3;}50%{opacity:1;}}
+  .poll-status button{
+    background:none;border:1px solid var(--ink-soft);color:var(--ink);
+    font-family:var(--font-mono);font-size:11px;padding:3px 8px;border-radius:6px;cursor:pointer;
+  }
+  .poll-status button:hover{background:var(--ink);color:var(--paper);}
 
-/* GRIDS */
-.anime-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  gap: 10px;
-}
+  .new-qris-btn{
+    width:92%;margin-top:14px;padding:13px;border:1px dashed #9aa39d;border-radius:12px;
+    background:none;color:#54595a;font-family:var(--font-mono);font-size:13px;letter-spacing:.04em;
+    cursor:pointer;
+  }
+  .new-qris-btn:hover{border-color:var(--accent);color:var(--accent);}
 
-.a-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.2s, border-color 0.2s;
-  position: relative;
-}
-.a-card:hover { transform: translateY(-3px); border-color: var(--accent); }
-.a-card img {
-  width: 100%;
-  aspect-ratio: 2/3;
-  object-fit: cover;
-  display: block;
-}
-.a-card-score {
-  position: absolute;
-  top: 5px; right: 5px;
-  background: rgba(0,0,0,0.85);
-  color: var(--yellow);
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 5px;
-  border-radius: 4px;
-}
-.a-card-body { padding: 7px 8px; }
-.a-card-title {
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.a-card-meta { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .hidden{display:none !important;}
 
-/* RESULTS */
-.results-top {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
-}
-.results-top h2 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 18px; letter-spacing: 1px;
-}
-.results-top span { color: var(--muted); font-size: 12px; }
+  .footer-note{max-width:420px;text-align:center;font-size:11px;color:#75807b;margin-top:22px;line-height:1.5;}
+  .footer-note a{color:#3355ff;}
 
-.pagination { display: flex; gap: 7px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
-.pg-btn {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  color: var(--muted);
-  padding: 6px 12px;
-  border-radius: 7px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
-}
-.pg-btn:hover { border-color: var(--accent); color: var(--text); }
-.pg-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-
-/* PLAYER VIEW */
-.back-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  color: var(--muted); font-size: 13px; cursor: pointer;
-  background: none; border: none; font-family: 'Inter', sans-serif;
-  margin-bottom: 12px; padding: 0;
-}
-.back-btn:hover { color: var(--text); }
-
-.pl-info { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px; }
-.pl-poster {
-  width: 60px; min-width: 60px;
-  aspect-ratio: 2/3; object-fit: cover;
-  border-radius: 8px; border: 1px solid var(--border);
-}
-.pl-meta h2 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 18px; letter-spacing: 1px; line-height: 1.2; margin-bottom: 6px;
-}
-.tags { display: flex; gap: 6px; flex-wrap: wrap; }
-.tag {
-  font-size: 10px; padding: 3px 7px;
-  border-radius: 5px; font-weight: 700;
-}
-.tag-r { background: #2d0a10; color: var(--accent2); }
-.tag-b { background: #0a1040; color: #7ba7ff; }
-.tag-g { background: #032a1e; color: var(--green); }
-.tag-y { background: #2a1f00; color: var(--yellow); }
-
-/* WATCH OPTIONS — main feature */
-.watch-box {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-
-.watch-box-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 16px;
-  letter-spacing: 1px;
-  color: var(--accent2);
-  margin-bottom: 4px;
-}
-.watch-box-sub {
-  font-size: 12px;
-  color: var(--muted);
-  margin-bottom: 14px;
-  line-height: 1.5;
-}
-
-.watch-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.watch-btn {
-  background: var(--bg3);
-  border: 2px solid var(--border);
-  color: var(--text);
-  border-radius: 12px;
-  padding: 14px 12px;
-  cursor: pointer;
-  text-align: left;
-  font-family: 'Inter', sans-serif;
-  transition: all 0.2s;
-  text-decoration: none;
-  display: block;
-}
-.watch-btn:hover { border-color: var(--accent); transform: translateY(-2px); }
-.watch-btn .wb-icon { font-size: 22px; margin-bottom: 6px; display: block; }
-.watch-btn .wb-name { font-size: 13px; font-weight: 700; display: block; margin-bottom: 3px; }
-.watch-btn .wb-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
-.watch-btn.primary { border-color: var(--accent); background: #1a0810; }
-.watch-btn.primary .wb-name { color: var(--accent2); }
-
-/* EPISODE */
-.ep-box { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
-.ep-top {
-  display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
-}
-.ep-top span {
-  font-size: 11px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
-}
-.ep-range-sel {
-  background: var(--bg3); border: 1px solid var(--border);
-  color: var(--text); padding: 4px 8px; border-radius: 6px;
-  font-size: 11px; font-family: 'Inter', sans-serif; outline: none;
-}
-.ep-scroll { max-height: 180px; overflow-y: auto; }
-.ep-scroll::-webkit-scrollbar { width: 3px; }
-.ep-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-.ep-grid { display: flex; flex-wrap: wrap; gap: 6px; }
-.ep-btn {
-  background: var(--bg3); border: 1px solid var(--border);
-  color: var(--muted); width: 42px; height: 34px;
-  border-radius: 7px; font-size: 12px; font-weight: 700;
-  cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.12s;
-}
-.ep-btn:hover { border-color: var(--accent); color: var(--text); }
-.ep-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-
-/* LOADING */
-.spinner {
-  width: 32px; height: 32px;
-  border: 3px solid var(--border);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.loading-c {
-  display: flex; flex-direction: column;
-  align-items: center; gap: 12px;
-  padding: 48px 20px; color: var(--muted); font-size: 13px;
-}
-
-/* TOAST */
-.toast {
-  position: fixed; bottom: 18px; left: 50%;
-  transform: translateX(-50%) translateY(80px);
-  background: var(--bg4); border: 1px solid var(--border);
-  color: var(--text); padding: 9px 18px;
-  border-radius: 10px; font-size: 13px;
-  z-index: 999; transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
-  pointer-events: none; white-space: nowrap;
-}
-.toast.show { transform: translateX(-50%) translateY(0); }
-
-@media (max-width: 420px) {
-  .watch-grid { grid-template-columns: 1fr; }
-  .anime-grid { grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); }
-  .chips { gap: 6px; }
-}
+  @media (max-width:380px){
+    .lcd-amount{font-size:26px;}
+    .field-row{grid-template-columns:1fr;}
+  }
 </style>
 </head>
 <body>
+<div class="stage">
 
-<header>
-  <div class="logo">ANI<span>STREAM</span></div>
-  <div class="search-bar">
-    <input id="q" type="text" placeholder="Cari anime..." autocomplete="off" />
-    <button class="btn-red" onclick="doSearch(1)">Cari</button>
-  </div>
-</header>
+  <div class="terminal">
+    <div class="terminal-top">
+      <span class="brand"><span class="dot"></span> TemanQRIS EDC</span>
+      <span>POST /generate</span>
+    </div>
 
-<main>
-
-<!-- HOME -->
-<div id="home-view" class="active">
-  <div class="hero">
-    <h1>NONTON ANIME<br><span>GRATIS & BERSIH</span></h1>
-    <p>Tanpa iklan judi — pilih situs favorit kamu langsung dari sini</p>
-  </div>
-
-  <div class="chips">
-    <div class="chip" onclick="qs('One Piece')">🏴‍☠️ One Piece</div>
-    <div class="chip" onclick="qs('Naruto')">🍥 Naruto</div>
-    <div class="chip" onclick="qs('Dragon Ball')">⚡ Dragon Ball</div>
-    <div class="chip" onclick="qs('Bleach')">☠️ Bleach</div>
-    <div class="chip" onclick="qs('Attack on Titan')">⚔️ AoT</div>
-    <div class="chip" onclick="qs('Demon Slayer')">🔥 Demon Slayer</div>
-    <div class="chip" onclick="qs('Jujutsu Kaisen')">👁️ JJK</div>
-    <div class="chip" onclick="qs('Black Clover')">🍀 Black Clover</div>
-    <div class="chip" onclick="qs('Fairy Tail')">✨ Fairy Tail</div>
-    <div class="chip" onclick="qs('Hunter x Hunter')">🎯 HxH</div>
-    <div class="chip" onclick="qs('Sword Art Online')">🗡️ SAO</div>
-    <div class="chip" onclick="qs('Re Zero')">🌸 Re:Zero</div>
-    <div class="chip" onclick="qs('Overlord')">👑 Overlord</div>
-    <div class="chip" onclick="qs('Tower of God')">🗼 Tower of God</div>
-  </div>
-
-  <div class="sec-head"><h2>TRENDING SEKARANG</h2><div class="line"></div></div>
-  <div class="anime-grid" id="trending-grid">
-    <div class="loading-c" style="grid-column:1/-1"><div class="spinner"></div><span>Memuat...</span></div>
-  </div>
-</div>
-
-<!-- RESULTS -->
-<div id="results-view">
-  <div class="results-top">
-    <h2 id="res-title">HASIL</h2>
-    <span id="res-count"></span>
-  </div>
-  <div class="anime-grid" id="results-grid"></div>
-  <div class="pagination" id="pagination"></div>
-</div>
-
-<!-- PLAYER -->
-<div id="player-view">
-  <button class="back-btn" onclick="goBack()">← Kembali</button>
-
-  <div class="pl-info">
-    <img id="pl-img" class="pl-poster" src="" alt="" />
-    <div class="pl-meta">
-      <h2 id="pl-title">-</h2>
-      <div class="tags">
-        <span class="tag tag-r" id="pl-type">TV</span>
-        <span class="tag tag-b" id="pl-eps"></span>
-        <span class="tag tag-y" id="pl-score"></span>
+    <div class="screen">
+      <div id="screenIdle">
+        <div class="lcd-label">NOMINAL</div>
+        <div class="lcd-amount" id="lcdAmount">Rp 0</div>
+      </div>
+      <div id="screenResult" class="hidden">
+        <img id="qrImg" alt="Kode QRIS"/>
+        <span class="caption">Pindai untuk bayar</span>
       </div>
     </div>
+
+    <form id="qrisForm">
+      <div class="hint">Kunci API sekarang disimpan aman di server proxy kamu, bukan di browser.</div>
+
+      <label class="field">
+        <span class="field-label">Nominal transaksi (Rp)</span>
+        <input type="text" inputmode="numeric" id="amount" placeholder="50.000" required/>
+      </label>
+
+      <button type="button" class="advanced-toggle" id="toggleAdvanced">▸ Pengaturan lanjutan (biaya, order ID, webhook)</button>
+      <div class="advanced" id="advancedFields">
+        <div class="field-row">
+          <label class="field">
+            <span class="field-label">Jenis biaya</span>
+            <select id="feeType">
+              <option value="">Tanpa biaya</option>
+              <option value="rupiah">Rupiah</option>
+              <option value="percent">Persen</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">Nilai biaya</span>
+            <input type="number" min="0" id="feeValue" placeholder="1000"/>
+          </label>
+        </div>
+        <label class="field">
+          <span class="field-label">ID Order (opsional, maks 30 karakter)</span>
+          <input type="text" id="orderId" maxlength="30" placeholder="INV-2026-001"/>
+        </label>
+        <label class="field">
+          <span class="field-label">Webhook URL (opsional)</span>
+          <input type="url" id="webhookUrl" placeholder="https://tokomu.com/webhook"/>
+        </label>
+        <label class="field">
+          <span class="field-label">Callback URL (opsional)</span>
+          <input type="url" id="callbackUrl" placeholder="https://tokomu.com/selesai"/>
+        </label>
+      </div>
+
+      <div class="total-preview" id="totalPreview"></div>
+
+      <button type="submit" class="generate-btn" id="generateBtn">GENERATE QRIS</button>
+    </form>
+
+    <div class="error hidden" id="errorBanner"></div>
   </div>
 
-  <!-- WATCH OPTIONS -->
-  <div class="watch-box">
-    <div class="watch-box-title">PILIH SITUS NONTON</div>
-    <div class="watch-box-sub">
-      Tap salah satu → otomatis buka halaman anime di situs itu.<br>
-      Semua gratis, sub English, tanpa iklan judi.
+  <div class="perforation"></div>
+
+  <div class="receipt hidden" id="receipt">
+    <div class="lunas-stamp" id="lunasStamp">LUNAS</div>
+    <div class="receipt-row big" id="rAmount">Rp 0</div>
+    <div class="receipt-row hidden" id="rFeeRow"></div>
+    <div class="receipt-divider"></div>
+    <div class="receipt-row"><span>Order</span><span id="rOrder">—</span></div>
+    <div class="receipt-row"><span>Link bayar</span><button id="copyLink">Salin</button></div>
+    <div class="receipt-row"><span>String QRIS</span><button id="copyQris">Salin</button></div>
+    <div class="receipt-divider"></div>
+    <div class="receipt-row countdown" id="rCountdown">Berlaku —:—</div>
+    <div class="receipt-row poll-status hidden" id="pollStatus">
+      <span><span class="poll-dot"></span><span id="pollStatusText">Memantau otomatis…</span></span>
+      <button type="button" id="checkNowBtn">Cek sekarang</button>
     </div>
-    <div class="watch-grid" id="watch-grid"></div>
   </div>
 
-  <!-- EPISODE -->
-  <div class="ep-box">
-    <div class="ep-top">
-      <span>Episode</span>
-      <select class="ep-range-sel" id="ep-range" onchange="renderEps()">
-        <option value="0">1 – 100</option>
-        <option value="1">101 – 200</option>
-        <option value="2">201 – 300</option>
-        <option value="3">301 – 500</option>
-        <option value="4">501 – 700</option>
-        <option value="5">701 – 1000</option>
-        <option value="6">1001+</option>
-      </select>
-    </div>
-    <div class="ep-scroll">
-      <div class="ep-grid" id="ep-grid"></div>
-    </div>
-  </div>
+  <button type="button" class="new-qris-btn hidden" id="newQrisBtn">↺ Buat QRIS baru</button>
+
+  <p class="footer-note">Frontend tidak resmi untuk API <a href="https://temanqris.com" target="_blank" rel="noopener">temanqris.com</a>. Status "paid" muncul otomatis di sini begitu order diverifikasi — TemanQRIS sendiri tidak mengecek mutasi rekening/e-wallet secara langsung.</p>
 </div>
-
-</main>
-<div class="toast" id="toast"></div>
 
 <script>
-const JIKAN = 'https://api.jikan.moe/v4';
-let S = { anime: null, ep: 1, totalEps: 12, query: '', page: 1, watched: {} };
+(function(){
+  const API_BASE = "/api/qris/generate"; // relatif ke domain proxy kamu sendiri, bukan langsung ke temanqris.com
 
-// ── WATCH PROVIDERS ──
-// Opens the actual streaming site search/page for the anime
-function getProviders(anime) {
-  const title = encodeURIComponent(anime.title_english || anime.title || '');
-  const titleRaw = (anime.title_english || anime.title || '').toLowerCase().replace(/[^a-z0-9\s]/g,'').trim();
-  const slug = titleRaw.replace(/\s+/g,'-');
-  const malId = anime.mal_id;
-  const ep = S.ep;
+  const amountInput = document.getElementById('amount');
+  const lcdAmount = document.getElementById('lcdAmount');
+  const totalPreview = document.getElementById('totalPreview');
+  const feeType = document.getElementById('feeType');
+  const feeValue = document.getElementById('feeValue');
+  const toggleBtn = document.getElementById('toggleAdvanced');
+  const advanced = document.getElementById('advancedFields');
+  const form = document.getElementById('qrisForm');
+  const generateBtn = document.getElementById('generateBtn');
+  const errorBanner = document.getElementById('errorBanner');
+  const screenIdle = document.getElementById('screenIdle');
+  const screenResult = document.getElementById('screenResult');
+  const qrImg = document.getElementById('qrImg');
+  const receipt = document.getElementById('receipt');
+  const rAmount = document.getElementById('rAmount');
+  const rFeeRow = document.getElementById('rFeeRow');
+  const rOrder = document.getElementById('rOrder');
+  const rCountdown = document.getElementById('rCountdown');
+  const copyLinkBtn = document.getElementById('copyLink');
+  const copyQrisBtn = document.getElementById('copyQris');
+  const lunasStamp = document.getElementById('lunasStamp');
+  const pollStatus = document.getElementById('pollStatus');
+  const pollStatusText = document.getElementById('pollStatusText');
+  const checkNowBtn = document.getElementById('checkNowBtn');
+  const newQrisBtn = document.getElementById('newQrisBtn');
 
-  return [
-    {
-      icon: '🟣',
-      name: 'HiAnime',
-      desc: 'Paling lengkap & stabil. 1080p. Sub/Dub.',
-      url: `https://hianime.to/search?keyword=${title}`,
-      primary: true,
-    },
-    {
-      icon: '🔵',
-      name: 'Aniwatch.to',
-      desc: 'Server banyak, jarang down.',
-      url: `https://aniwatch.to/search?keyword=${title}`,
-    },
-    {
-      icon: '🟠',
-      name: 'GogoAnime',
-      desc: 'Database besar termasuk donghua.',
-      url: `https://gogoanime3.co/search.html?keyword=${title}`,
-    },
-    {
-      icon: '🟢',
-      name: 'Zoro.to',
-      desc: 'Mirror HiAnime, kualitas sama.',
-      url: `https://zoro.to/search?keyword=${title}`,
-    },
-    {
-      icon: '🔴',
-      name: '9Anime',
-      desc: 'Koleksi lengkap termasuk lama.',
-      url: `https://9anime.pl/filter?keyword=${title}`,
-    },
-    {
-      icon: '⚪',
-      name: 'AnimePahe',
-      desc: 'Hemat data, kualitas kompres bagus.',
-      url: `https://animepahe.ru/anime/${slug}`,
-    },
-  ];
-}
+  let paymentLinkFull = '';
+  let qrisString = '';
+  let countdownTimer = null;
+  let pollTimer = null;
+  let pollDeadline = null;
+  let currentOrderId = '';
+  const POLL_INTERVAL_MS = 15000;
+  const POLL_MAX_MS = 15 * 60 * 1000;
 
-function buildWatchGrid(anime) {
-  const providers = getProviders(anime);
-  document.getElementById('watch-grid').innerHTML = providers.map(p => `
-    <a class="watch-btn ${p.primary ? 'primary' : ''}" href="${p.url}" target="_blank" rel="noopener">
-      <span class="wb-icon">${p.icon}</span>
-      <span class="wb-name">${p.name}</span>
-      <span class="wb-desc">${p.desc}</span>
-    </a>
-  `).join('');
-}
-
-// ── VIEWS ──
-function showView(id) {
-  ['home-view','results-view','player-view'].forEach(v =>
-    document.getElementById(v).classList.toggle('active', v === id)
-  );
-  window.scrollTo(0, 0);
-}
-
-// ── SEARCH ──
-document.getElementById('q').addEventListener('keydown', e => { if(e.key==='Enter') doSearch(1); });
-
-function qs(name) {
-  document.getElementById('q').value = name;
-  doSearch(1);
-}
-
-async function doSearch(page) {
-  const q = document.getElementById('q').value.trim();
-  if (!q) return;
-  S.query = q; S.page = page;
-  showView('results-view');
-  document.getElementById('res-title').textContent = `"${q}"`;
-  document.getElementById('res-count').textContent = '';
-  document.getElementById('results-grid').innerHTML = `<div class="loading-c" style="grid-column:1/-1"><div class="spinner"></div><span>Mencari...</span></div>`;
-  document.getElementById('pagination').innerHTML = '';
-  try {
-    const d = await fetch(`${JIKAN}/anime?q=${encodeURIComponent(q)}&page=${page}&limit=24&order_by=popularity&sort=asc`).then(r=>r.json());
-    renderGrid(d.data||[], 'results-grid');
-    document.getElementById('res-count').textContent = (d.data?.length||0) + ' hasil';
-    buildPagination(d.pagination);
-  } catch(e) {
-    document.getElementById('results-grid').innerHTML = `<div class="loading-c" style="grid-column:1/-1;color:var(--accent)">Gagal. Cek koneksi.</div>`;
+  function toNumber(str){
+    return parseInt(String(str).replace(/[^\d]/g,''),10) || 0;
   }
-}
-
-function buildPagination(pg) {
-  if (!pg) return;
-  const cur = pg.current_page || S.page;
-  const last = pg.last_visible_page || 1;
-  let h = '';
-  if (cur > 1) h += `<button class="pg-btn" onclick="doSearch(${cur-1})">← Prev</button>`;
-  for (let i=Math.max(1,cur-2); i<=Math.min(last,cur+2); i++)
-    h += `<button class="pg-btn ${i===cur?'active':''}" onclick="doSearch(${i})">${i}</button>`;
-  if (cur < last) h += `<button class="pg-btn" onclick="doSearch(${cur+1})">Next →</button>`;
-  document.getElementById('pagination').innerHTML = h;
-}
-
-// ── TRENDING ──
-async function loadTrending() {
-  try {
-    const d = await fetch(`${JIKAN}/top/anime?filter=airing&limit=18`).then(r=>r.json());
-    renderGrid(d.data||[], 'trending-grid');
-  } catch(e) {
-    document.getElementById('trending-grid').innerHTML = `<div class="loading-c">Gagal memuat.</div>`;
+  function formatIDR(n){
+    return n.toLocaleString('id-ID');
   }
-}
 
-// ── GRID ──
-function renderGrid(list, gid) {
-  const g = document.getElementById(gid);
-  if (!list.length) { g.innerHTML = `<div class="loading-c" style="grid-column:1/-1">Tidak ditemukan.</div>`; return; }
-  const BLANK = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='300'><rect fill='%2312121f' width='200' height='300'/><text fill='%235a5a7a' x='100' y='155' text-anchor='middle' font-size='12' font-family='sans-serif'>No Image</text></svg>`;
-  g.innerHTML = list.map(a => {
-    const img = a.images?.jpg?.large_image_url || a.images?.jpg?.image_url || '';
-    const score = a.score ? `⭐${a.score}` : '';
-    const eps = a.episodes ? `${a.episodes}EP` : (a.status==='Currently Airing'?'Ongoing':'');
-    return `<div class="a-card" onclick='openAnime(${JSON.stringify(a).replace(/'/g,"&#39;")})'>
-      <img src="${img}" loading="lazy" onerror="this.src='${BLANK}'" alt="${a.title}" />
-      ${score?`<div class="a-card-score">${score}</div>`:''}
-      <div class="a-card-body">
-        <div class="a-card-title">${a.title}</div>
-        <div class="a-card-meta">${eps}</div>
-      </div>
-    </div>`;
-  }).join('');
-}
+  amountInput.addEventListener('input', ()=>{
+    const n = toNumber(amountInput.value);
+    amountInput.value = n ? formatIDR(n) : '';
+    lcdAmount.textContent = 'Rp ' + formatIDR(n);
+    updateTotalPreview();
+  });
 
-// ── OPEN ANIME ──
-function openAnime(a) {
-  S.anime = a;
-  S.ep = 1;
-  S.totalEps = a.episodes || 12;
-  document.getElementById('ep-range').value = '0';
-
-  document.getElementById('pl-title').textContent = a.title_english || a.title;
-  document.getElementById('pl-img').src = a.images?.jpg?.large_image_url || a.images?.jpg?.image_url || '';
-  document.getElementById('pl-type').textContent = a.type || 'TV';
-  document.getElementById('pl-eps').textContent = a.episodes ? `${a.episodes} EP` : 'Ongoing';
-  document.getElementById('pl-score').textContent = a.score ? `★ ${a.score}` : '';
-
-  buildWatchGrid(a);
-  renderEps();
-  showView('player-view');
-  toast('Pilih situs nonton di bawah 👇');
-}
-
-// ── EPISODES ──
-function renderEps() {
-  const range = parseInt(document.getElementById('ep-range').value);
-  const total = S.totalEps || 12;
-  const start = range * 100 + 1;
-  const end = Math.min(start + 99, total);
-  if (start > total) {
-    document.getElementById('ep-grid').innerHTML = `<span style="color:var(--muted);font-size:12px">Belum ada di range ini.</span>`;
-    return;
+  function updateTotalPreview(){
+    const amt = toNumber(amountInput.value);
+    const ft = feeType.value;
+    const fv = parseFloat(feeValue.value) || 0;
+    if(!amt || !ft || !fv){ totalPreview.textContent=''; return; }
+    let fee = ft === 'percent' ? Math.round(amt * fv / 100) : fv;
+    totalPreview.textContent = `+ biaya Rp ${formatIDR(fee)} → total Rp ${formatIDR(amt+fee)}`;
   }
-  let h = '';
-  for (let i=start; i<=end; i++) {
-    const active = i===S.ep ? 'active' : '';
-    h += `<button class="ep-btn ${active}" onclick="selectEp(${i})">${i}</button>`;
+  feeType.addEventListener('change', updateTotalPreview);
+  feeValue.addEventListener('input', updateTotalPreview);
+
+  toggleBtn.addEventListener('click', ()=>{
+    const open = advanced.classList.toggle('open');
+    toggleBtn.textContent = (open?'▾':'▸') + ' Pengaturan lanjutan (biaya, order ID, webhook)';
+  });
+
+  function showError(msg){
+    errorBanner.textContent = msg;
+    errorBanner.classList.remove('hidden');
   }
-  document.getElementById('ep-grid').innerHTML = h;
-}
+  function clearError(){
+    errorBanner.classList.add('hidden');
+    errorBanner.textContent = '';
+  }
 
-function selectEp(ep) {
-  S.ep = ep;
-  // Rebuild watch grid with new ep
-  if (S.anime) buildWatchGrid(S.anime);
-  renderEps();
-  toast(`Episode ${ep} dipilih — tap situs untuk nonton`);
-  document.querySelector('.watch-box').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    clearError();
 
-function goBack() {
-  if (S.query) showView('results-view');
-  else showView('home-view');
-}
+    const amt = toNumber(amountInput.value);
+    const orderId = document.getElementById('orderId').value.trim();
+    const webhookUrl = document.getElementById('webhookUrl').value.trim();
+    const callbackUrl = document.getElementById('callbackUrl').value.trim();
+    const ft = feeType.value;
+    const fv = parseFloat(feeValue.value) || 0;
 
-// ── TOAST ──
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(t._t);
-  t._t = setTimeout(() => t.classList.remove('show'), 2500);
-}
+    if(!amt){ showError('Isi nominal transaksinya dulu.'); return; }
+    if(orderId.length > 30){ showError('ID Order maksimal 30 karakter.'); return; }
 
-loadTrending();
+    stopStatusPolling();
+    receipt.classList.remove('paid');
+    lunasStamp.classList.remove('show');
+    pollStatus.classList.add('hidden');
+    newQrisBtn.classList.add('hidden');
+
+    const payload = { amount: amt };
+    if(ft){ payload.fee_type = ft; payload.fee_value = fv; }
+    if(orderId) payload.order_id = orderId;
+    if(webhookUrl) payload.webhook_url = webhookUrl;
+    if(callbackUrl) payload.callback_url = callbackUrl;
+
+    generateBtn.disabled = true;
+    generateBtn.textContent = 'MEMPROSES…';
+
+    try{
+      const res = await fetch(API_BASE, {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      let data;
+      try{ data = await res.json(); }
+      catch(_){ throw new Error('Server tidak mengirim respons JSON yang valid (status '+res.status+').'); }
+
+      if(!res.ok || data.success === false){
+        throw new Error(data.message || data.error || ('Gagal generate (status '+res.status+').'));
+      }
+
+      renderResult(data);
+
+    }catch(err){
+      if(err instanceof TypeError){
+        showError('Tidak bisa terhubung ke server proxy kamu. Pastikan server proxy (server.js) sedang berjalan dan halaman ini dibuka lewat alamat server itu, bukan dibuka langsung sebagai file.');
+      } else {
+        showError(err.message);
+      }
+    } finally {
+      generateBtn.disabled = false;
+      generateBtn.textContent = 'GENERATE QRIS';
+    }
+  });
+
+  function renderResult(data){
+    qrisString = data.qris || '';
+    const link = data.payment_link || {};
+    paymentLinkFull = link.url
+      ? (link.url.startsWith('http') ? link.url : 'https://temanqris.com' + link.url)
+      : '';
+
+    if(data.qr_image){
+      qrImg.src = data.qr_image;
+      screenIdle.classList.add('hidden');
+      screenResult.classList.remove('hidden');
+    }
+
+    rAmount.textContent = 'Rp ' + formatIDR(data.amount || 0);
+
+    if(data.fee && data.fee.value){
+      rFeeRow.classList.remove('hidden');
+      rFeeRow.innerHTML = `<span>Biaya</span><span>${data.fee.type==='percent' ? data.fee.value+'%' : 'Rp '+formatIDR(data.fee.value)}</span>`;
+    } else {
+      rFeeRow.classList.add('hidden');
+    }
+
+    rOrder.textContent = link.order_id || '—';
+    receipt.classList.remove('hidden');
+
+    if(countdownTimer) clearInterval(countdownTimer);
+    if(data.expires_at){
+      startCountdown(data.expires_at);
+    } else {
+      rCountdown.textContent = 'Tidak ada batas waktu';
+    }
+
+    currentOrderId = link.order_id || '';
+    if(currentOrderId){
+      startStatusPolling(currentOrderId, data.expires_at);
+    } else {
+      pollStatus.classList.remove('hidden');
+      checkNowBtn.classList.add('hidden');
+      setPollText('Order ID tidak tersedia, tidak bisa memantau otomatis.');
+    }
+  }
+
+  function setPollText(t){ pollStatusText.textContent = t; }
+
+  function startStatusPolling(orderId, qrisExpiresAt){
+    stopStatusPolling();
+    const expiresMs = qrisExpiresAt ? new Date(qrisExpiresAt).getTime() : null;
+    pollDeadline = Date.now() + POLL_MAX_MS;
+    pollStatus.classList.remove('hidden');
+    checkNowBtn.classList.remove('hidden');
+    setPollText('Memantau status pembayaran otomatis…');
+    checkOrderOnce(orderId, false);
+    pollTimer = setInterval(()=>{
+      if(Date.now() > pollDeadline || (expiresMs && Date.now() > expiresMs)){
+        stopStatusPolling();
+        setPollText('Pemantauan otomatis berhenti. Tekan "Cek sekarang" kalau perlu.');
+        return;
+      }
+      checkOrderOnce(orderId, false);
+    }, POLL_INTERVAL_MS);
+  }
+
+  function stopStatusPolling(){
+    if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
+  }
+
+  async function checkOrderOnce(orderId, manual){
+    if(manual) setPollText('Mengecek status…');
+    try{
+      const res = await fetch(`/api/qris/orders/${encodeURIComponent(orderId)}`);
+      const data = await res.json().catch(()=>null);
+      if(!res.ok || !data || data.success === false) return;
+      handleOrderStatus(data.order, manual);
+    }catch(_){ /* koneksi gagal sesaat, dicoba lagi di polling berikutnya */ }
+  }
+
+  function handleOrderStatus(order, manual){
+    if(!order) return;
+    if(order.status === 'paid'){
+      stopStatusPolling();
+      if(countdownTimer) clearInterval(countdownTimer);
+      receipt.classList.add('paid');
+      lunasStamp.classList.add('show');
+      const paidTime = order.paid_at ? new Date(order.paid_at).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) : '';
+      rCountdown.textContent = '✅ Dibayar' + (paidTime ? ' pukul ' + paidTime : '');
+      rCountdown.classList.remove('expired');
+      setPollText('Pembayaran terverifikasi. Selesai!');
+      checkNowBtn.classList.add('hidden');
+      newQrisBtn.classList.remove('hidden');
+    } else if(order.status === 'expired' || order.status === 'cancelled'){
+      stopStatusPolling();
+      setPollText(order.status === 'expired' ? 'QRIS ini sudah kedaluwarsa.' : 'Order ini dibatalkan.');
+      checkNowBtn.classList.add('hidden');
+      newQrisBtn.classList.remove('hidden');
+    } else if(order.status === 'awaiting_confirmation'){
+      setPollText('Customer klik "Sudah Bayar", menunggu verifikasi kamu…');
+    } else if(manual){
+      setPollText('Belum ada pembayaran masuk. Masih dipantau otomatis…');
+    }
+  }
+
+  function startCountdown(isoStr){
+    const target = new Date(isoStr).getTime();
+    function tick(){
+      const diff = target - Date.now();
+      if(diff <= 0){
+        rCountdown.textContent = 'Kedaluwarsa';
+        rCountdown.classList.add('expired');
+        clearInterval(countdownTimer);
+        return;
+      }
+      const totalSec = Math.floor(diff/1000);
+      const h = Math.floor(totalSec/3600);
+      const m = Math.floor((totalSec%3600)/60);
+      const s = totalSec%60;
+      const pad = n=>String(n).padStart(2,'0');
+      rCountdown.textContent = 'Berlaku ' + (h? pad(h)+':' : '') + pad(m) + ':' + pad(s);
+    }
+    tick();
+    countdownTimer = setInterval(tick, 1000);
+  }
+
+  async function copyText(text, btn){
+    if(!text) return;
+    try{
+      await navigator.clipboard.writeText(text);
+      const original = btn.textContent;
+      btn.textContent = 'Tersalin!';
+      setTimeout(()=>btn.textContent = original, 1500);
+    }catch(_){
+      showError('Tidak bisa menyalin otomatis. Salin manual: ' + text);
+    }
+  }
+  copyLinkBtn.addEventListener('click', ()=>copyText(paymentLinkFull, copyLinkBtn));
+  copyQrisBtn.addEventListener('click', ()=>copyText(qrisString, copyQrisBtn));
+
+  checkNowBtn.addEventListener('click', ()=>{
+    if(currentOrderId) checkOrderOnce(currentOrderId, true);
+  });
+
+  newQrisBtn.addEventListener('click', ()=>{
+    stopStatusPolling();
+    if(countdownTimer) clearInterval(countdownTimer);
+    receipt.classList.add('hidden');
+    receipt.classList.remove('paid');
+    lunasStamp.classList.remove('show');
+    pollStatus.classList.add('hidden');
+    newQrisBtn.classList.add('hidden');
+    screenResult.classList.add('hidden');
+    screenIdle.classList.remove('hidden');
+    amountInput.value = '';
+    lcdAmount.textContent = 'Rp 0';
+    totalPreview.textContent = '';
+    amountInput.focus();
+  });
+
+})();
 </script>
 </body>
 </html>
